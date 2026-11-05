@@ -1,4 +1,4 @@
-namespace AlekoDispatch.Models
+namespace AlekoDispatch.Data.Models
 {
     public class ErrorViewModel
     {
