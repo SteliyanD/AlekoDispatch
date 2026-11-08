@@ -1,4 +1,5 @@
 using AlekoDispatch.Data;
+using AlekoDispatch.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,8 @@ namespace AlekoDispatch
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddScoped<IWorkSiteService, WorkSiteService>();
 
             var app = builder.Build();
 
