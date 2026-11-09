@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AlekoDispatch.Controllers
 {
+    [Authorize]
     public class WorkSitesController : Controller
     {
         private readonly IWorkSiteService _workSiteService;
