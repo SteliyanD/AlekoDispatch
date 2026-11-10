@@ -32,6 +32,8 @@ namespace AlekoDispatch
 
             builder.Services.AddScoped<IWorkSiteService, WorkSiteService>();
 
+            builder.Services.AddScoped<IHeavyMachineService, HeavyMachineService>();
+
             var app = builder.Build();
 
             // Seed data and roles automatically on startup
