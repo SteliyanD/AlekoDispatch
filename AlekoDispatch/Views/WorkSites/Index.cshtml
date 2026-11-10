@@ -73,9 +73,69 @@ else
                                class="btn btn-sm btn-outline-primary">
                                 Edit
                             </a>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal-@site.Id">
+                                Delete
+                            </button>
                         }
                     </td>
                 </tr>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <div class="modal fade" id="deleteModal-@site.Id"
+                         tabindex="-1"
+                         aria-labelledby="deleteModalLabel-@site.Id"
+                         aria-hidden="true">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content text-start">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title fs-5"
+                                        id="deleteModalLabel-@site.Id">
+                                        Confirm Site Deletion
+                                    </h5>
+
+                                    <button type="button" class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close">
+                                    </button>
+                                </div>
+
+                                <div class="modal-body">
+                                    Are you sure you want to delete work site
+                                    <strong class="text-danger">@site.Name</strong>?
+
+                                    <p class="small text-muted mt-2 mb-0">
+                                        This action cannot be undone.
+                                    </p>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">
+                                        Cancel
+                                    </button>
+
+                                    <form asp-action="Delete"
+                                          asp-route-id="@site.Id"
+                                          method="post"
+                                          class="d-inline">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit" class="btn btn-danger">
+                                            Yes, Delete
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                }
             }
         </tbody>
     </table>
