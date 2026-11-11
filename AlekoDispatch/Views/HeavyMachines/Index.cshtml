@@ -1,0 +1,176 @@
+﻿@using AlekoDispatch.ViewModels.HeavyMachines
+
+@model IEnumerable<HeavyMachineIndexViewModel>
+
+@{
+    ViewData["Title"] = "Heavy Machines";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1>Heavy Machines</h1>
+        <p class="text-muted mb-0">
+            List of registered machines and their current work site assignments.
+        </p>
+    </div>
+
+    @if (User.IsInRole("Administrator"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            Register Machine
+        </a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <p>No machines have been registered yet.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Inventory Number</th>
+                    <th>Type</th>
+                    <th class="text-end">Engine Hours</th>
+                    <th>Assigned Work Site</th>
+                    <th class="text-center">Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var machine in Model)
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@machine.Id">
+                                @machine.Model
+                            </a>
+                        </td>
+
+                        <td>@machine.InventoryNumber</td>
+                        <td>@machine.Type</td>
+
+                        <td class="text-end">
+                            @machine.CurrentEngineHours.ToString("N1") hrs
+                        </td>
+
+                        <td>
+                            @if (machine.AssignedWorkSiteId.HasValue)
+                            {
+                                <a asp-controller="WorkSites"
+                                   asp-action="Details"
+                                   asp-route-id="@machine.AssignedWorkSiteId">
+                                    @machine.AssignedWorkSiteName
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not assigned</span>
+                            }
+                        </td>
+
+                        <td class="text-center">
+                            @if (machine.IsOperational)
+                            {
+                                <span class="badge bg-success">Operational</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Maintenance</span>
+                            }
+                        </td>
+
+                        <td>
+                            <a asp-action="Details"
+                               asp-route-id="@machine.Id"
+                               class="btn btn-sm btn-outline-secondary">
+                                Details
+                            </a>
+
+                            @if (User.IsInRole("Administrator"))
+                            {
+                                <a asp-action="Edit"
+                                   asp-route-id="@machine.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteMachineModal-@machine.Id">
+                                    Delete
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (User.IsInRole("Administrator"))
+    {
+        @foreach (var machine in Model)
+        {
+            <div class="modal fade"
+                 id="deleteMachineModal-@machine.Id"
+                 tabindex="-1"
+                 aria-labelledby="deleteMachineLabel-@machine.Id"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title"
+                                id="deleteMachineLabel-@machine.Id">
+                                Confirm Deletion
+                            </h5>
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close">
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+                            Are you sure you want to delete
+                            <strong>@machine.Model (@machine.InventoryNumber)</strong>?
+
+                            <p class="text-muted small mt-2 mb-0">
+                                This action cannot be undone.
+                            </p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@machine.Id"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit" class="btn btn-danger">
+                                    Yes, Delete
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}
