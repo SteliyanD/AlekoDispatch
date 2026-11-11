@@ -1,0 +1,142 @@
+﻿
+@using AlekoDispatch.ViewModels.HeavyMachines
+@using AlekoDispatch.Data.Enums
+
+@model HeavyMachineFormModel
+
+@{
+    ViewData["Title"] = $"Edit Machine - {Model.Model}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Edit Heavy Machine</h1>
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                Back to Fleet
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="text-danger mb-3">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Model" class="form-label">
+                                Model
+                            </label>
+
+                            <input asp-for="Model" class="form-control" />
+
+                            <span asp-validation-for="Model"
+                                  class="text-danger">
+                            </span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="InventoryNumber" class="form-label">
+                                Inventory Number
+                            </label>
+
+                            <input asp-for="InventoryNumber"
+                                   class="form-control" />
+
+                            <span asp-validation-for="InventoryNumber"
+                                  class="text-danger">
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Type" class="form-label">
+                                Machine Type
+                            </label>
+
+                            <select asp-for="Type"
+                                    asp-items="Html.GetEnumSelectList<MachineType>()"
+                                    class="form-select">
+                            </select>
+
+                            <span asp-validation-for="Type"
+                                  class="text-danger">
+                            </span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CurrentEngineHours" class="form-label">
+                                Engine Hours
+                            </label>
+
+                            <input asp-for="CurrentEngineHours"
+                                   type="number"
+                                   step="0.1"
+                                   class="form-control" />
+
+                            <span asp-validation-for="CurrentEngineHours"
+                                  class="text-danger">
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CurrentWorkSiteId" class="form-label">
+                            Assigned Work Site
+                        </label>
+
+                        <select asp-for="CurrentWorkSiteId"
+                                asp-items="Model.AvailableWorkSites"
+                                class="form-select">
+                            <option value="">Not assigned</option>
+                        </select>
+
+                        <span asp-validation-for="CurrentWorkSiteId"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input asp-for="IsOperational"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsOperational"
+                                   class="form-check-label">
+                                Machine is operational
+                            </label>
+                        </div>
+
+                        <span asp-validation-for="IsOperational"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-primary">
+                            Save Changes
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
