@@ -1,11 +1,15 @@
-﻿using AlekoDispatch.ViewModels.HeavyMachines;
+﻿using AlekoDispatch.Data.Enums;
+using AlekoDispatch.ViewModels.HeavyMachines;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AlekoDispatch.Services
 {
     public interface IHeavyMachineService
     {
-        Task<IEnumerable<HeavyMachineIndexViewModel>> GetAllAsync();
+        Task<HeavyMachineQueryViewModel> GetAllAsync(
+            string? searchTerm = null,
+            MachineType? category = null,
+            bool? isOperational = null);
 
         Task<HeavyMachineDetailsViewModel?> GetDetailsByIdAsync(int id);
 

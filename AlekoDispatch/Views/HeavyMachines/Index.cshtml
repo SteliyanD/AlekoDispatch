@@ -1,9 +1,16 @@
-﻿@using AlekoDispatch.ViewModels.HeavyMachines
+﻿
+@using AlekoDispatch.ViewModels.HeavyMachines
+@using AlekoDispatch.Data.Enums
 
-@model IEnumerable<HeavyMachineIndexViewModel>
+@model HeavyMachineQueryViewModel
 
 @{
     ViewData["Title"] = "Heavy Machines";
+
+    bool hasActiveFilters =
+        !string.IsNullOrWhiteSpace(Model.SearchTerm) ||
+        Model.Category.HasValue ||
+        Model.IsOperational.HasValue;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -22,14 +29,80 @@
     }
 </div>
 
-@if (!Model.Any())
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label asp-for="SearchTerm" class="form-label">
+                        Search
+                    </label>
+
+                    <input asp-for="SearchTerm"
+                           class="form-control"
+                           placeholder="Model, inventory number or site" />
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Category" class="form-label">
+                        Category
+                    </label>
+
+                    <select asp-for="Category"
+                            asp-items="Html.GetEnumSelectList<MachineType>()"
+                            class="form-select">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="IsOperational" class="form-label">
+                        Status
+                    </label>
+
+                    <select asp-for="IsOperational" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="true">Operational</option>
+                        <option value="false">Maintenance</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Filter
+                    </button>
+
+                    @if (hasActiveFilters)
+                    {
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Reset
+                        </a>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Machines.Any())
 {
-    <p>No machines have been registered yet.</p>
+    @if (hasActiveFilters)
+    {
+        <p class="text-muted">
+            No machines match your search.
+            <a asp-action="Index">Reset filters</a> to see all machines.
+        </p>
+    }
+    else
+    {
+        <p>No machines have been registered yet.</p>
+    }
 }
 else
 {
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-hover align-middle">
             <thead>
                 <tr>
                     <th>Model</th>
@@ -43,11 +116,12 @@ else
             </thead>
 
             <tbody>
-                @foreach (var machine in Model)
+                @foreach (var machine in Model.Machines)
                 {
                     <tr>
                         <td>
-                            <a asp-action="Details" asp-route-id="@machine.Id">
+                            <a asp-action="Details"
+                               asp-route-id="@machine.Id">
                                 @machine.Model
                             </a>
                         </td>
@@ -77,11 +151,15 @@ else
                         <td class="text-center">
                             @if (machine.IsOperational)
                             {
-                                <span class="badge bg-success">Operational</span>
+                                <span class="badge bg-success">
+                                    Operational
+                                </span>
                             }
                             else
                             {
-                                <span class="badge bg-danger">Maintenance</span>
+                                <span class="badge bg-danger">
+                                    Maintenance
+                                </span>
                             }
                         </td>
 
@@ -116,7 +194,7 @@ else
 
     @if (User.IsInRole("Administrator"))
     {
-        @foreach (var machine in Model)
+        @foreach (var machine in Model.Machines)
         {
             <div class="modal fade"
                  id="deleteMachineModal-@machine.Id"
@@ -151,7 +229,7 @@ else
 
                         <div class="modal-footer">
                             <button type="button"
-                                    class="btn btn-secondary"
+                                    class="btn btn-outline-secondary"
                                     data-bs-dismiss="modal">
                                 Cancel
                             </button>

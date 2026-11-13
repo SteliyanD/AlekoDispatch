@@ -16,10 +16,36 @@ namespace AlekoDispatch.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<HeavyMachineIndexViewModel>> GetAllAsync()
+        public async Task<HeavyMachineQueryViewModel> GetAllAsync(
+            string? searchTerm = null,
+            MachineType? category = null,
+            bool? isOperational = null)
         {
-            return await _context.HeavyMachines
+            var query = _context.HeavyMachines
                 .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var normalizedSearch = searchTerm.Trim().ToLower();
+                query = query.Where(m =>
+                    m.Model.ToLower().Contains(normalizedSearch) ||
+                    m.InventoryNumber.ToLower().Contains(normalizedSearch) ||
+                    (m.CurrentWorkSite != null && m.CurrentWorkSite.Name.ToLower().Contains(normalizedSearch)));
+            }
+
+            if (category.HasValue)
+            {
+                query = query.Where(m => m.Type == category.Value);
+            }
+
+            if (isOperational.HasValue)
+            {
+                query = query.Where(m => m.IsOperational == isOperational.Value);
+            }
+
+            var machines = await query
+                .OrderBy(m => m.Model)
                 .Select(m => new HeavyMachineIndexViewModel
                 {
                     Id = m.Id,
@@ -32,6 +58,14 @@ namespace AlekoDispatch.Services
                     AssignedWorkSiteName = m.CurrentWorkSite != null ? m.CurrentWorkSite.Name : null
                 })
                 .ToListAsync();
+
+            return new HeavyMachineQueryViewModel
+            {
+                SearchTerm = searchTerm,
+                Category = category,
+                IsOperational = isOperational,
+                Machines = machines
+            };
         }
 
         public async Task<HeavyMachineDetailsViewModel?> GetDetailsByIdAsync(int id)

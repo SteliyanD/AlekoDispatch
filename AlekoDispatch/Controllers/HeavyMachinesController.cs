@@ -1,4 +1,5 @@
-﻿using AlekoDispatch.Services;
+﻿using AlekoDispatch.Data.Enums;
+using AlekoDispatch.Services;
 using AlekoDispatch.ViewModels.HeavyMachines;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,10 +18,13 @@ namespace AlekoDispatch.Controllers
 
         // GET: /HeavyMachines
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            [FromQuery] string? searchTerm,
+            [FromQuery] MachineType? category,
+            [FromQuery] bool? isOperational)
         {
-            var machines = await _machineService.GetAllAsync();
-            return View(machines);
+            var model = await _machineService.GetAllAsync(searchTerm, category, isOperational);
+            return View(model);
         }
 
         // GET: /HeavyMachines/Details/{id}
