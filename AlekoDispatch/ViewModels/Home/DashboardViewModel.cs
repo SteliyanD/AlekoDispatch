@@ -14,11 +14,11 @@ namespace AlekoDispatch.ViewModels.Home
 
         public int MaintenanceMachines { get; set; }
 
-        public double TotalLoggedHours { get; set; }
+        public int TotalEmployees { get; set; }
 
-        public double TotalFuelConsumedLiters { get; set; }
+        public int LogsSubmittedToday { get; set; }
 
-        public double TotalDebrisHauledTons { get; set; }
+        public double FuelConsumedTodayLiters { get; set; }
 
         public IEnumerable<DailyWorkLogIndexViewModel> RecentLogs { get; set; } = new List<DailyWorkLogIndexViewModel>();
     }

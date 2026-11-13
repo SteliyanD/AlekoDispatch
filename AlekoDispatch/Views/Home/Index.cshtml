@@ -1,8 +1,236 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿
+@using AlekoDispatch.ViewModels.Home
+
+@model DashboardViewModel?
+
+@{
+    ViewData["Title"] = "Dispatch Command Center";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (Model == null)
+{
+    <div class="text-center py-5">
+        <h1 class="display-5 mb-3">AlekoDispatch</h1>
+
+        <p class="lead text-muted mb-4">
+            Manage heavy machinery, work sites and daily work records
+            in one place.
+        </p>
+
+        <div class="d-flex justify-content-center gap-2">
+            <a asp-area="Identity"
+               asp-page="/Account/Login"
+               class="btn btn-primary">
+                Sign In
+            </a>
+
+            <a asp-area="Identity"
+               asp-page="/Account/Register"
+               class="btn btn-outline-secondary">
+                Register
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h1>Dispatch Command Center</h1>
+            <p class="text-muted mb-0">
+                Overview of work sites, machines and daily operations.
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="DailyWorkLogs"
+               asp-action="Create"
+               class="btn btn-primary">
+                Log Daily Shift
+            </a>
+
+            @if (User.IsInRole("Administrator"))
+            {
+                <a asp-controller="HeavyMachines"
+                   asp-action="Create"
+                   class="btn btn-outline-primary">
+                    Add Machine
+                </a>
+
+                <a asp-controller="WorkSites"
+                   asp-action="Create"
+                   class="btn btn-outline-secondary">
+                    New Work Site
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Active Work Sites</h6>
+
+                    <h3>
+                        @Model.ActiveWorkSites
+                        <small class="text-muted">
+                            / @Model.TotalWorkSites total
+                        </small>
+                    </h3>
+
+                    <a asp-controller="WorkSites"
+                       asp-action="Index"
+                       class="small">
+                        View all sites
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Fleet Readiness</h6>
+
+                    <h3>
+                        @Model.OperationalMachines
+                        <small class="text-muted">
+                            / @Model.TotalMachines units
+                        </small>
+                    </h3>
+
+                    @if (Model.MaintenanceMachines > 0)
+                    {
+                        <p class="text-danger small mb-0">
+                            @Model.MaintenanceMachines in maintenance
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">
+                            All machines operational
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Registered Staff</h6>
+
+                    <h3>
+                        @Model.TotalEmployees
+                        <small class="text-muted">accounts</small>
+                    </h3>
+
+                    <p class="text-muted small mb-0">
+                        Operators and dispatchers
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Today's Shift Logs</h6>
+
+                    <h3>
+                        @Model.LogsSubmittedToday
+                        <small class="text-muted">entries</small>
+                    </h3>
+
+                    <p class="text-muted small mb-0">
+                        Fuel today:
+                        @Model.FuelConsumedTodayLiters.ToString("N1") L
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Latest Shift Activity</h5>
+
+            <a asp-controller="DailyWorkLogs"
+               asp-action="Index"
+               class="btn btn-sm btn-outline-secondary">
+                View All Logs
+            </a>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!Model.RecentLogs.Any())
+            {
+                <p class="text-muted text-center my-4">
+                    No work logs have been recorded yet.
+                </p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Work Site</th>
+                                <th>Machine</th>
+                                <th>Operator</th>
+                                <th class="text-end">Runtime</th>
+                                <th class="text-end">Fuel</th>
+                                <th class="text-end">Hauled</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var log in Model.RecentLogs)
+                            {
+                                <tr>
+                                    <td>@log.LogDate</td>
+
+                                    <td>
+                                        <a asp-controller="WorkSites"
+                                           asp-action="Details"
+                                           asp-route-id="@log.WorkSiteId">
+                                            @log.WorkSiteName
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <a asp-controller="HeavyMachines"
+                                           asp-action="Details"
+                                           asp-route-id="@log.HeavyMachineId">
+                                            @log.MachineName
+                                        </a>
+
+                                        <div class="small text-muted">
+                                            @log.MachineInventoryNumber
+                                        </div>
+                                    </td>
+
+                                    <td>@log.OperatorName</td>
+
+                                    <td class="text-end">
+                                        @log.HoursWorked.ToString("N1") hrs
+                                    </td>
+
+                                    <td class="text-end">
+                                        @log.FuelConsumedLiters.ToString("N1") L
+                                    </td>
+
+                                    <td class="text-end">
+                                        @log.DebrisHauledTons.ToString("N1") t
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}

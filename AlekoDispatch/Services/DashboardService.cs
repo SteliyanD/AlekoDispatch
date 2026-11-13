@@ -16,6 +16,8 @@ namespace AlekoDispatch.Services
 
         public async Task<DashboardViewModel> GetDashboardStatsAsync()
         {
+            var today = DateTime.Today;
+
             var totalWorkSites = await _context.WorkSites.CountAsync();
             var activeWorkSites = await _context.WorkSites
                 .CountAsync(s => s.Status.ToString() == "Active");
@@ -24,14 +26,14 @@ namespace AlekoDispatch.Services
             var operationalMachines = await _context.HeavyMachines
                 .CountAsync(m => m.IsOperational);
 
-            var totalLoggedHours = await _context.DailyWorkLogs
-                .SumAsync(l => (double?)l.HoursWorked) ?? 0;
+            var totalEmployees = await _context.Users.CountAsync();
 
-            var totalFuelConsumed = await _context.DailyWorkLogs
+            var logsSubmittedToday = await _context.DailyWorkLogs
+                .CountAsync(l => l.LogDate.Date == today);
+
+            var fuelConsumedToday = await _context.DailyWorkLogs
+                .Where(l => l.LogDate.Date == today)
                 .SumAsync(l => (double?)l.FuelConsumedLiters) ?? 0;
-
-            var totalDebrisHauled = await _context.DailyWorkLogs
-                .SumAsync(l => (double?)l.DebrisHauledTons) ?? 0;
 
             var recentLogs = await _context.DailyWorkLogs
                 .AsNoTracking()
@@ -62,9 +64,9 @@ namespace AlekoDispatch.Services
                 TotalMachines = totalMachines,
                 OperationalMachines = operationalMachines,
                 MaintenanceMachines = totalMachines - operationalMachines,
-                TotalLoggedHours = totalLoggedHours,
-                TotalFuelConsumedLiters = totalFuelConsumed,
-                TotalDebrisHauledTons = totalDebrisHauled,
+                TotalEmployees = totalEmployees,
+                LogsSubmittedToday = logsSubmittedToday,
+                FuelConsumedTodayLiters = fuelConsumedToday,
                 RecentLogs = recentLogs
             };
         }
