@@ -36,6 +36,8 @@ namespace AlekoDispatch
 
             builder.Services.AddScoped<IDailyWorkLogService, DailyWorkLogService>();
 
+            builder.Services.AddScoped<IDashboardService, DashboardService>();
+
             var app = builder.Build();
 
             // Seed data and roles automatically on startup
