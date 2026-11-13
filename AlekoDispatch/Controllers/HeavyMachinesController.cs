@@ -53,15 +53,15 @@ namespace AlekoDispatch.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Create(HeavyMachineFormModel model)
+        public async Task<IActionResult> Create(HeavyMachineFormModel formModel)
         {
             if (!ModelState.IsValid)
             {
-                model.AvailableWorkSites = await _machineService.GetWorkSitesSelectListAsync();
-                return View(model);
+                formModel.AvailableWorkSites = await _machineService.GetWorkSitesSelectListAsync();
+                return View(formModel);
             }
 
-            await _machineService.CreateAsync(model);
+            await _machineService.CreateAsync(formModel);
             return RedirectToAction(nameof(Index));
         }
 
@@ -83,15 +83,15 @@ namespace AlekoDispatch.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Edit(int id, HeavyMachineFormModel model)
+        public async Task<IActionResult> Edit(int id, HeavyMachineFormModel formModel)
         {
             if (!ModelState.IsValid)
             {
-                model.AvailableWorkSites = await _machineService.GetWorkSitesSelectListAsync();
-                return View(model);
+                formModel.AvailableWorkSites = await _machineService.GetWorkSitesSelectListAsync();
+                return View(formModel);
             }
 
-            var success = await _machineService.EditAsync(id, model);
+            var success = await _machineService.EditAsync(id, formModel);
             if (!success)
             {
                 return NotFound();
