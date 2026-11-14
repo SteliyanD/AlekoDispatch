@@ -27,11 +27,6 @@ namespace AlekoDispatch.Controllers
             return View(null);
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
         [HttpGet]
         [AllowAnonymous]
         [Route("Home/StatusCode/{code:int}")]
