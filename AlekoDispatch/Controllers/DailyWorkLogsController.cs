@@ -17,10 +17,14 @@ namespace AlekoDispatch.Controllers
 
         // GET: /DailyWorkLogs
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            [FromQuery] int? workSiteId,
+            [FromQuery] int? heavyMachineId,
+            [FromQuery] string? searchTerm,
+            [FromQuery] int currentPage = 1)
         {
-            var logs = await _logService.GetAllAsync();
-            return View(logs);
+            var model = await _logService.GetAllAsync(workSiteId, heavyMachineId, searchTerm, currentPage);
+            return View(model);
         }
 
         // GET: /DailyWorkLogs/Create

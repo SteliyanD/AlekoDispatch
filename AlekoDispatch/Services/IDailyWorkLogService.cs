@@ -5,7 +5,12 @@ namespace AlekoDispatch.Services
 {
     public interface IDailyWorkLogService
     {
-        Task<IEnumerable<DailyWorkLogIndexViewModel>> GetAllAsync();
+        Task<DailyWorkLogQueryViewModel> GetAllAsync(
+            int? workSiteId = null,
+            int? heavyMachineId = null,
+            string? searchTerm = null,
+            int currentPage = 1,
+            int pageSize = 10);
 
         Task<DailyWorkLogFormModel> GetNewLogFormModelAsync(string? defaultOperatorName = null);
 

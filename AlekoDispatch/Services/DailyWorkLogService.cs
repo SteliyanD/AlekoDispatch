@@ -15,12 +15,53 @@ namespace AlekoDispatch.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<DailyWorkLogIndexViewModel>> GetAllAsync()
+        public async Task<DailyWorkLogQueryViewModel> GetAllAsync(
+            int? workSiteId = null,
+            int? heavyMachineId = null,
+            string? searchTerm = null,
+            int currentPage = 1,
+            int pageSize = 10)
         {
-            return await _context.DailyWorkLogs
+            if (currentPage < 1)
+            {
+                currentPage = 1;
+            }
+
+            var query = _context.DailyWorkLogs
                 .AsNoTracking()
+                .AsQueryable();
+
+            if (workSiteId.HasValue)
+            {
+                query = query.Where(l => l.WorkSiteId == workSiteId.Value);
+            }
+
+            if (heavyMachineId.HasValue)
+            {
+                query = query.Where(l => l.HeavyMachineId == heavyMachineId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var normalizedSearch = searchTerm.Trim().ToLower();
+                query = query.Where(l =>
+                    l.OperatorName.ToLower().Contains(normalizedSearch) ||
+                    (l.Notes != null && l.Notes.ToLower().Contains(normalizedSearch)));
+            }
+
+            var totalLogs = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalLogs / pageSize);
+
+            if (totalPages > 0 && currentPage > totalPages)
+            {
+                currentPage = totalPages;
+            }
+
+            var logs = await query
                 .OrderByDescending(l => l.LogDate)
                 .ThenByDescending(l => l.Id)
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
                 .Select(l => new DailyWorkLogIndexViewModel
                 {
                     Id = l.Id,
@@ -37,6 +78,19 @@ namespace AlekoDispatch.Services
                     Notes = l.Notes
                 })
                 .ToListAsync();
+
+            return new DailyWorkLogQueryViewModel
+            {
+                WorkSiteId = workSiteId,
+                HeavyMachineId = heavyMachineId,
+                SearchTerm = searchTerm,
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                TotalLogs = totalLogs,
+                WorkSites = await GetWorkSitesSelectListAsync(),
+                Machines = await GetAllMachinesSelectListAsync(),
+                Logs = logs
+            };
         }
 
         public async Task<DailyWorkLogFormModel> GetNewLogFormModelAsync(string? defaultOperatorName = null)
@@ -113,6 +167,19 @@ namespace AlekoDispatch.Services
             return await _context.HeavyMachines
                 .AsNoTracking()
                 .Where(m => m.IsOperational)
+                .OrderBy(m => m.Model)
+                .Select(m => new SelectListItem
+                {
+                    Value = m.Id.ToString(),
+                    Text = $"{m.Model} [{m.InventoryNumber}]"
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SelectListItem>> GetAllMachinesSelectListAsync()
+        {
+            return await _context.HeavyMachines
+                .AsNoTracking()
                 .OrderBy(m => m.Model)
                 .Select(m => new SelectListItem
                 {

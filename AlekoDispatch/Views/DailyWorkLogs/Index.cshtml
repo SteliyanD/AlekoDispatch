@@ -1,10 +1,15 @@
 ﻿
 @using AlekoDispatch.ViewModels.DailyWorkLogs
 
-@model IEnumerable<DailyWorkLogIndexViewModel>
+@model DailyWorkLogQueryViewModel
 
 @{
     ViewData["Title"] = "Daily Work Logs";
+
+    bool hasActiveFilters =
+        Model.WorkSiteId.HasValue ||
+        Model.HeavyMachineId.HasValue ||
+        !string.IsNullOrWhiteSpace(Model.SearchTerm);
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -20,11 +25,77 @@
     </a>
 </div>
 
-@if (!Model.Any())
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label asp-for="WorkSiteId" class="form-label">
+                        Work Site
+                    </label>
+
+                    <select asp-for="WorkSiteId"
+                            asp-items="Model.WorkSites"
+                            class="form-select">
+                        <option value="">All Work Sites</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="HeavyMachineId" class="form-label">
+                        Machine
+                    </label>
+
+                    <select asp-for="HeavyMachineId"
+                            asp-items="Model.Machines"
+                            class="form-select">
+                        <option value="">All Machines</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="SearchTerm" class="form-label">
+                        Search Operator / Notes
+                    </label>
+
+                    <input asp-for="SearchTerm"
+                           class="form-control"
+                           placeholder="Operator name or shift notes..." />
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Filter
+                    </button>
+
+                    @if (hasActiveFilters)
+                    {
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Reset
+                        </a>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Logs.Any())
 {
-    <p class="text-muted">
-        No work logs have been recorded yet.
-    </p>
+    @if (hasActiveFilters)
+    {
+        <p class="text-muted">
+            No work logs match your filters.
+            <a asp-action="Index">Reset filters</a> to see all logs.
+        </p>
+    }
+    else
+    {
+        <p class="text-muted">
+            No work logs have been recorded yet.
+        </p>
+    }
 }
 else
 {
@@ -49,7 +120,7 @@ else
             </thead>
 
             <tbody>
-                @foreach (var log in Model)
+                @foreach (var log in Model.Logs)
                 {
                     <tr>
                         <td>@log.LogDate</td>
@@ -113,7 +184,7 @@ else
 
     @if (User.IsInRole("Administrator"))
     {
-        @foreach (var log in Model)
+        @foreach (var log in Model.Logs)
         {
             <div class="modal fade"
                  id="deleteLogModal-@log.Id"
@@ -170,5 +241,56 @@ else
                 </div>
             </div>
         }
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-3">
+            <p class="text-muted small mb-2">
+                Showing page <strong>@Model.CurrentPage</strong>
+                of <strong>@Model.TotalPages</strong>
+                (@Model.TotalLogs total entries)
+            </p>
+
+            <nav aria-label="Work logs pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-workSiteId="@Model.WorkSiteId"
+                           asp-route-heavyMachineId="@Model.HeavyMachineId"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           asp-route-currentPage="@(Model.CurrentPage - 1)">
+                            Previous
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-workSiteId="@Model.WorkSiteId"
+                               asp-route-heavyMachineId="@Model.HeavyMachineId"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-currentPage="@i">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-workSiteId="@Model.WorkSiteId"
+                           asp-route-heavyMachineId="@Model.HeavyMachineId"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           asp-route-currentPage="@(Model.CurrentPage + 1)">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     }
 }
