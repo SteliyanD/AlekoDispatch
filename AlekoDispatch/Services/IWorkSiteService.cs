@@ -1,10 +1,14 @@
-﻿using AlekoDispatch.ViewModels.WorkSites;
+﻿using AlekoDispatch.Data.Enums;
+using AlekoDispatch.ViewModels.WorkSites;
 
 namespace AlekoDispatch.Services
 {
     public interface IWorkSiteService
     {
-        Task<IEnumerable<WorkSiteIndexViewModel>> GetAllAsync();
+        Task<WorkSiteQueryViewModel> GetAllAsync(
+            string? searchTerm = null,
+            WorkSiteStatus? status = null,
+            string sortOrder = "date_desc");
         Task<WorkSiteDetailsViewModel?> GetDetailsByIdAsync(int id);
         Task<WorkSiteFormModel?> GetForEditByIdAsync(int id);
         Task CreateAsync(WorkSiteFormModel model);

@@ -1,4 +1,5 @@
 ﻿using AlekoDispatch.Data;
+using AlekoDispatch.Data.Enums;
 using AlekoDispatch.Data.Models;
 using AlekoDispatch.ViewModels.WorkSites;
 using Microsoft.EntityFrameworkCore;
@@ -14,24 +15,58 @@ namespace AlekoDispatch.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<WorkSiteIndexViewModel>> GetAllAsync()
+        public async Task<WorkSiteQueryViewModel> GetAllAsync(
+            string? searchTerm = null,
+            WorkSiteStatus? status = null,
+            string sortOrder = "date_desc")
         {
-            return await _context.WorkSites
+            var query = _context.WorkSites
                 .AsNoTracking()
-                .Select(ws => new WorkSiteIndexViewModel
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var normalizedSearch = searchTerm.Trim().ToLower();
+                query = query.Where(s =>
+                    s.Name.ToLower().Contains(normalizedSearch) ||
+                    s.Location.ToLower().Contains(normalizedSearch));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(s => s.Status == status.Value);
+            }
+
+            query = sortOrder switch
+            {
+                "date_asc" => query.OrderBy(s => s.StartDate).ThenBy(s => s.Id),
+                "name_asc" => query.OrderBy(s => s.Name),
+                _ => query.OrderByDescending(s => s.StartDate).ThenByDescending(s => s.Id)
+            };
+
+            var workSites = await query
+                .Select(s => new WorkSiteIndexViewModel
                 {
-                    Id = ws.Id,
-                    Name = ws.Name,
-                    Location = ws.Location,
-                    Status = ws.Status,
-                    StartDate = ws.StartDate.ToString("dd.MM.yyyy"),
-                    TargetCompletionDate = ws.TargetCompletionDate.HasValue
-                        ? ws.TargetCompletionDate.Value.ToString("dd.MM.yyyy")
+                    Id = s.Id,
+                    Name = s.Name,
+                    Location = s.Location,
+                    Status = s.Status,
+                    StartDate = s.StartDate.ToString("yyyy-MM-dd"),
+                    TargetCompletionDate = s.TargetCompletionDate.HasValue
+                        ? s.TargetCompletionDate.Value.ToString("yyyy-MM-dd")
                         : null,
-                    ActiveMachinesCount = ws.AssignedMachines.Count(m => m.IsOperational),
-                    TotalLogsCount = ws.DailyWorkLogs.Count
+                    ActiveMachinesCount = s.AssignedMachines.Count,
+                    TotalLogsCount = s.DailyWorkLogs.Count
                 })
                 .ToListAsync();
+
+            return new WorkSiteQueryViewModel
+            {
+                SearchTerm = searchTerm,
+                Status = status,
+                SortOrder = sortOrder,
+                WorkSites = workSites
+            };
         }
 
         public async Task<WorkSiteDetailsViewModel?> GetDetailsByIdAsync(int id)

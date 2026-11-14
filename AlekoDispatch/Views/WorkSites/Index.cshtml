@@ -1,142 +1,257 @@
-﻿@using AlekoDispatch.ViewModels.WorkSites
-@model IEnumerable<WorkSiteIndexViewModel>
+﻿
+@using AlekoDispatch.ViewModels.WorkSites
+@using AlekoDispatch.Data.Enums
+
+@model WorkSiteQueryViewModel
 
 @{
     ViewData["Title"] = "Work Sites";
+
+    bool hasActiveFilters =
+        !string.IsNullOrWhiteSpace(Model.SearchTerm) ||
+        Model.Status.HasValue ||
+        Model.SortOrder != "date_desc";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Work Sites</h1>
+    <div>
+        <h1>Work Sites</h1>
+        <p class="text-muted mb-0">
+            Active projects, job site locations, and machine deployments.
+        </p>
+    </div>
 
     @if (User.IsInRole("Administrator"))
     {
-        <a asp-action="Create" class="btn btn-primary">New Work Site</a>
+        <a asp-action="Create" class="btn btn-primary text-nowrap">
+            New Work Site
+        </a>
     }
 </div>
 
-@if (!Model.Any())
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label asp-for="SearchTerm" class="form-label">
+                        Search
+                    </label>
+
+                    <input asp-for="SearchTerm"
+                           class="form-control"
+                           placeholder="Site name or location..." />
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Status" class="form-label">
+                        Site Status
+                    </label>
+
+                    <select asp-for="Status"
+                            asp-items="Html.GetEnumSelectList<WorkSiteStatus>()"
+                            class="form-select">
+                        <option value="">All Statuses</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="SortOrder" class="form-label">
+                        Sort By
+                    </label>
+
+                    <select asp-for="SortOrder" class="form-select">
+                        <option value="date_desc">Start Date (Newest First)</option>
+                        <option value="date_asc">Start Date (Oldest First)</option>
+                        <option value="name_asc">Site Name (A - Z)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Apply
+                    </button>
+
+                    @if (hasActiveFilters)
+                    {
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Reset
+                        </a>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.WorkSites.Any())
 {
-    <p>No work sites have been added yet.</p>
+    @if (hasActiveFilters)
+    {
+        <p class="text-muted">
+            No work sites match your filters.
+            <a asp-action="Index">Reset filters</a> to see all work sites.
+        </p>
+    }
+    else
+    {
+        <p class="text-muted">
+            No work sites have been added yet.
+        </p>
+    }
 }
 else
 {
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Site Name</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Start Date</th>
-                <th>Target Completion</th>
-                <th>Active Machinery</th>
-                <th>Work Logs</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var site in Model)
-            {
-                var statusClass = "bg-warning text-dark";
+    <div class="table-responsive">
+        <table class="table table-hover align-middle"
+               style="min-width: 1200px;">
 
-                if (site.Status.ToString() == "Active")
-                {
-                    statusClass = "bg-success";
-                }
-                else if (site.Status.ToString() == "Completed")
-                {
-                    statusClass = "bg-secondary";
-                }
-
+            <thead>
                 <tr>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@site.Id">
-                            @site.Name
-                        </a>
-                    </td>
-                    <td>@site.Location</td>
-                    <td>
-                        <span class="badge @statusClass">@site.Status</span>
-                    </td>
-                    <td>@site.StartDate</td>
-                    <td>@(site.TargetCompletionDate ?? "—")</td>
-                    <td>@site.ActiveMachinesCount</td>
-                    <td>@site.TotalLogsCount</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@site.Id"
-                           class="btn btn-sm btn-outline-secondary">
-                            Details
-                        </a>
-
-                        @if (User.IsInRole("Administrator"))
-                        {
-                            <a asp-action="Edit" asp-route-id="@site.Id"
-                               class="btn btn-sm btn-outline-primary">
-                                Edit
-                            </a>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal-@site.Id">
-                                Delete
-                            </button>
-                        }
-                    </td>
+                    <th>Site Name</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th class="text-nowrap">Start Date</th>
+                    <th class="text-nowrap">Target Completion</th>
+                    <th class="text-nowrap">Active Machinery</th>
+                    <th>Work Logs</th>
+                    <th class="text-nowrap" style="width: 190px;">Actions</th>
                 </tr>
-                @if (User.IsInRole("Administrator"))
+            </thead>
+
+            <tbody>
+                @foreach (var site in Model.WorkSites)
                 {
-                    <div class="modal fade" id="deleteModal-@site.Id"
-                         tabindex="-1"
-                         aria-labelledby="deleteModalLabel-@site.Id"
-                         aria-hidden="true">
+                    var statusClass = "bg-warning text-dark";
 
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content text-start">
+                    if (site.Status.ToString() == "Active")
+                    {
+                        statusClass = "bg-success";
+                    }
+                    else if (site.Status.ToString() == "Completed")
+                    {
+                        statusClass = "bg-secondary";
+                    }
 
-                                <div class="modal-header">
-                                    <h5 class="modal-title fs-5"
-                                        id="deleteModalLabel-@site.Id">
-                                        Confirm Site Deletion
-                                    </h5>
+                    <tr>
+                        <td>
+                            <a asp-action="Details"
+                               asp-route-id="@site.Id">
+                                @site.Name
+                            </a>
+                        </td>
 
-                                    <button type="button" class="btn-close"
-                                            data-bs-dismiss="modal"
-                                            aria-label="Close">
+                        <td>@site.Location</td>
+
+                        <td>
+                            <span class="badge @statusClass">
+                                @site.Status
+                            </span>
+                        </td>
+
+                        <td class="text-nowrap">
+                            @site.StartDate
+                        </td>
+
+                        <td class="text-nowrap">
+                            @(site.TargetCompletionDate ?? "—")
+                        </td>
+
+                        <td class="text-nowrap">
+                            @site.ActiveMachinesCount
+                        </td>
+
+                        <td>
+                            @site.TotalLogsCount
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-nowrap gap-1">
+                                <a asp-action="Details"
+                                   asp-route-id="@site.Id"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Details
+                                </a>
+
+                                @if (User.IsInRole("Administrator"))
+                                {
+                                    <a asp-action="Edit"
+                                       asp-route-id="@site.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Edit
+                                    </a>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal-@site.Id">
+                                        Delete
                                     </button>
-                                </div>
-
-                                <div class="modal-body">
-                                    Are you sure you want to delete work site
-                                    <strong class="text-danger">@site.Name</strong>?
-
-                                    <p class="small text-muted mt-2 mb-0">
-                                        This action cannot be undone.
-                                    </p>
-                                </div>
-
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">
-                                        Cancel
-                                    </button>
-
-                                    <form asp-action="Delete"
-                                          asp-route-id="@site.Id"
-                                          method="post"
-                                          class="d-inline">
-
-                                        @Html.AntiForgeryToken()
-
-                                        <button type="submit" class="btn btn-danger">
-                                            Yes, Delete
-                                        </button>
-                                    </form>
-                                </div>
-
+                                }
                             </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (User.IsInRole("Administrator"))
+    {
+        @foreach (var site in Model.WorkSites)
+        {
+            <div class="modal fade"
+                 id="deleteModal-@site.Id"
+                 tabindex="-1"
+                 aria-labelledby="deleteModalLabel-@site.Id"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"
+                                id="deleteModalLabel-@site.Id">
+                                Confirm Site Deletion
+                            </h5>
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close">
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+                            Are you sure you want to delete work site
+                            <strong>@site.Name</strong>?
+
+                            <p class="text-muted small mt-2 mb-0">
+                                This action cannot be undone.
+                            </p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@site.Id"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit" class="btn btn-danger">
+                                    Yes, Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
-                }
-            }
-        </tbody>
-    </table>
+                </div>
+            </div>
+        }
+    }
 }

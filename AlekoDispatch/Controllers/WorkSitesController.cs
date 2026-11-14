@@ -1,4 +1,5 @@
-﻿using AlekoDispatch.Services;
+﻿using AlekoDispatch.Data.Enums;
+using AlekoDispatch.Services;
 using AlekoDispatch.ViewModels.WorkSites;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,9 +18,12 @@ namespace AlekoDispatch.Controllers
 
         // GET: /WorkSites
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            [FromQuery] string? searchTerm,
+            [FromQuery] WorkSiteStatus? status,
+            [FromQuery] string sortOrder = "date_desc")
         {
-            var model = await _workSiteService.GetAllAsync();
+            var model = await _workSiteService.GetAllAsync(searchTerm, status, sortOrder);
             return View(model);
         }
 
