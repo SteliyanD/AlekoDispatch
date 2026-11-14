@@ -28,14 +28,16 @@ namespace AlekoDispatch
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.AccessDeniedPath = "/Home/StatusCode/403";
+            });
+
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddScoped<IWorkSiteService, WorkSiteService>();
-
             builder.Services.AddScoped<IHeavyMachineService, HeavyMachineService>();
-
             builder.Services.AddScoped<IDailyWorkLogService, DailyWorkLogService>();
-
             builder.Services.AddScoped<IDashboardService, DashboardService>();
 
             var app = builder.Build();
@@ -66,6 +68,8 @@ namespace AlekoDispatch
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseStatusCodePagesWithReExecute("/Home/StatusCode/{0}");
 
             app.UseHttpsRedirection();
             app.UseRouting();

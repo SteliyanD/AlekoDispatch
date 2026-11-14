@@ -1,6 +1,7 @@
 using AlekoDispatch.Data.Models;
 using AlekoDispatch.Services;
 using AlekoDispatch.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -31,10 +32,34 @@ namespace AlekoDispatch.Controllers
             return View();
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("Home/StatusCode/{code:int}")]
+        public IActionResult StatusCode(int code)
+        {
+            Response.StatusCode = code;
+
+            if (code == 404)
+            {
+                return View("NotFound");
+            }
+
+            ViewData["StatusCode"] = code;
+            return View("Error", new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
+        }
+
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            Response.StatusCode = 500;
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }

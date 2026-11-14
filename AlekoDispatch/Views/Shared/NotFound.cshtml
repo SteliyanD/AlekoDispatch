@@ -1,0 +1,31 @@
+﻿
+@{
+    ViewData["Title"] = "404 - Page Not Found";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center">
+
+            <h1 class="display-1 fw-bold text-primary mb-2">
+                404
+            </h1>
+
+            <h2 class="h4 mb-3">
+                Page Not Found
+            </h2>
+
+            <p class="text-muted mb-4">
+                The work site, heavy machine, shift log, or page you requested
+                does not exist or may have been removed.
+            </p>
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="btn btn-primary px-4">
+                Return to Home
+            </a>
+
+        </div>
+    </div>
+</div>

@@ -1,6 +1,7 @@
 ﻿using AlekoDispatch.Data.Enums;
 using AlekoDispatch.Data.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AlekoDispatch.Data
 {
@@ -11,6 +12,8 @@ namespace AlekoDispatch.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await context.Database.MigrateAsync();
 
             // Roles setup
             string[] roleNames = { "Administrator", "Employee" };
@@ -24,8 +27,7 @@ namespace AlekoDispatch.Data
 
             // Default administrator account
             string adminEmail = "admin@aleko.bg";
-            var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
-            if (existingAdmin == null)
+            if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
                 var adminUser = new IdentityUser
                 {
@@ -41,8 +43,26 @@ namespace AlekoDispatch.Data
                 }
             }
 
+            // Default employee account for testing non-admin role access
+            string employeeEmail = "employee@aleko.bg";
+            if (await userManager.FindByEmailAsync(employeeEmail) == null)
+            {
+                var employeeUser = new IdentityUser
+                {
+                    UserName = employeeEmail,
+                    Email = employeeEmail,
+                    EmailConfirmed = true
+                };
+
+                var createEmployeeResult = await userManager.CreateAsync(employeeUser, "Employee123!");
+                if (createEmployeeResult.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(employeeUser, "Employee");
+                }
+            }
+
             // WorkSites seeding with static dates
-            if (!context.WorkSites.Any())
+            if (!await context.WorkSites.AnyAsync())
             {
                 var workSites = new List<WorkSite>
                 {
@@ -80,9 +100,11 @@ namespace AlekoDispatch.Data
             }
 
             // HeavyMachines seeding
-            if (!context.HeavyMachines.Any())
+            if (!await context.HeavyMachines.AnyAsync())
             {
-                var firstSite = context.WorkSites.FirstOrDefault();
+                var sites = await context.WorkSites.OrderBy(s => s.Id).ToListAsync();
+                var firstSite = sites.FirstOrDefault();
+                var secondSite = sites.Skip(1).FirstOrDefault();
 
                 var machines = new List<HeavyMachine>
                 {
@@ -111,7 +133,7 @@ namespace AlekoDispatch.Data
                         Type = MachineType.WheelLoader,
                         CurrentEngineHours = 2100.8,
                         IsOperational = true,
-                        CurrentWorkSiteId = null
+                        CurrentWorkSiteId = secondSite?.Id
                     },
                     new HeavyMachine
                     {
@@ -126,6 +148,46 @@ namespace AlekoDispatch.Data
 
                 await context.HeavyMachines.AddRangeAsync(machines);
                 await context.SaveChangesAsync();
+            }
+
+            // DailyWorkLogs seeding
+            if (!await context.DailyWorkLogs.AnyAsync())
+            {
+                var firstSite = await context.WorkSites.OrderBy(s => s.Id).FirstOrDefaultAsync();
+                var excavator = await context.HeavyMachines.FirstOrDefaultAsync(m => m.InventoryNumber == "EH-104");
+                var dumpTruck = await context.HeavyMachines.FirstOrDefaultAsync(m => m.InventoryNumber == "EH-302");
+
+                if (firstSite != null && excavator != null && dumpTruck != null)
+                {
+                    var logs = new List<DailyWorkLog>
+                    {
+                        new DailyWorkLog
+                        {
+                            LogDate = new DateTime(2026, 11, 12),
+                            WorkSiteId = firstSite.Id,
+                            HeavyMachineId = excavator.Id,
+                            OperatorName = "Ivan Petrov",
+                            HoursWorked = 8.5,
+                            FuelConsumedLiters = 162.0,
+                            DebrisHauledTons = 0.0,
+                            Notes = "Primary concrete wall demolition and rebar separation."
+                        },
+                        new DailyWorkLog
+                        {
+                            LogDate = new DateTime(2026, 11, 13),
+                            WorkSiteId = firstSite.Id,
+                            HeavyMachineId = dumpTruck.Id,
+                            OperatorName = "Georgi Dimitrov",
+                            HoursWorked = 8.0,
+                            FuelConsumedLiters = 135.5,
+                            DebrisHauledTons = 148.0,
+                            Notes = "6 full loads of crushed concrete hauled to recycling depot."
+                        }
+                    };
+
+                    await context.DailyWorkLogs.AddRangeAsync(logs);
+                    await context.SaveChangesAsync();
+                }
             }
         }
     }
