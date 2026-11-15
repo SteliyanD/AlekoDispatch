@@ -52,6 +52,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label asp-for="CompletedDate" class="form-label"></label>
+                        <input asp-for="CompletedDate" class="form-control" type="date" />
+                        <span asp-validation-for="CompletedDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
                         <label asp-for="Status" class="form-label">Status</label>
                         <select asp-for="Status" asp-items="Html.GetEnumSelectList<WorkSiteStatus>()" class="form-select">
                         </select>

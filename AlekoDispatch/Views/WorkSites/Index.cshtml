@@ -113,9 +113,9 @@ else
                     <th>Location</th>
                     <th>Status</th>
                     <th class="text-nowrap">Start Date</th>
-                    <th class="text-nowrap">Target Completion</th>
-                    <th class="text-nowrap">Active Machinery</th>
-                    <th>Work Logs</th>
+                    <th class="text-nowrap">Completion Dates</th>
+                    <th class="text-nowrap text-center">Active Machinery</th>
+                    <th class="text-center">Work Logs</th>
                     <th class="text-nowrap" style="width: 190px;">Actions</th>
                 </tr>
             </thead>
@@ -155,14 +155,24 @@ else
                         </td>
 
                         <td class="text-nowrap">
-                            @(site.TargetCompletionDate ?? "—")
+                            <div class="small">
+                                <span class="text-muted">Target:</span>
+                                @(site.TargetCompletionDate ?? "—")
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(site.CompletedDate))
+                            {
+                                <div class="small text-success fw-semibold">
+                                    Completed: @site.CompletedDate
+                                </div>
+                            }
                         </td>
 
-                        <td class="text-nowrap">
+                        <td class="text-nowrap text-center">
                             @site.ActiveMachinesCount
                         </td>
 
-                        <td>
+                        <td class="text-center">
                             @site.TotalLogsCount
                         </td>
 
@@ -254,4 +264,4 @@ else
             </div>
         }
     }
-}
+}   

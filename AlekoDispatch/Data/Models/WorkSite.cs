@@ -25,6 +25,9 @@ namespace AlekoDispatch.Data.Models
 
         public DateTime? TargetCompletionDate { get; set; }
 
+        [DataType(DataType.Date)]
+        public DateTime? CompletedDate { get; set; }
+
         [Required]
         public WorkSiteStatus Status { get; set; }
 

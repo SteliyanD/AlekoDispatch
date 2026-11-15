@@ -45,19 +45,47 @@
             </div>
             <div class="card-body">
                 <dl class="row">
-                    <dt class="col-sm-5">Start Date</dt>
-                    <dd class="col-sm-7">@Model.StartDate</dd>
+                    <dt class="col-sm-4">Start Date</dt>
+                    <dd class="col-sm-8">@Model.StartDate</dd>
 
-                    <dt class="col-sm-5">Target End</dt>
-                    <dd class="col-sm-7">
-                        @(Model.TargetCompletionDate ?? "Indefinite")
+                    <dt class="col-sm-4">Target Completion</dt>
+                    <dd class="col-sm-8">
+                        @(Model.TargetCompletionDate ?? "Not set")
                     </dd>
 
-                    <dt class="col-sm-5">Allocated Units</dt>
-                    <dd class="col-sm-7">@Model.AssignedMachines.Count</dd>
+                    @if (!string.IsNullOrEmpty(Model.CompletedDate))
+                    {
+                        <dt class="col-sm-4">Actual Completed</dt>
+                        <dd class="col-sm-8">
+                            @Model.CompletedDate
 
-                    <dt class="col-sm-5">Description</dt>
-                    <dd class="col-sm-7">
+                            @if (!string.IsNullOrEmpty(Model.TargetCompletionDate) &&
+                                 DateTime.TryParseExact(Model.CompletedDate, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out var completed) &&
+                                 DateTime.TryParseExact(Model.TargetCompletionDate, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out var target))
+                            {
+                                var delayDays = (completed.Date - target.Date).Days;
+
+                                if (delayDays > 0)
+                                {
+                                    <span class="badge bg-danger ms-2">+@delayDays days behind schedule</span>
+                                }
+                                else if (delayDays < 0)
+                                {
+                                    <span class="badge bg-success ms-2">@Math.Abs(delayDays) days ahead of schedule</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary ms-2">On schedule</span>
+                                }
+                            }
+                        </dd>
+                    }
+
+                    <dt class="col-sm-4">Allocated Units</dt>
+                    <dd class="col-sm-8">@Model.AssignedMachines.Count</dd>
+
+                    <dt class="col-sm-4">Description</dt>
+                    <dd class="col-sm-8">
                         @(string.IsNullOrWhiteSpace(Model.Description)
                             ? "No description provided."
                             : Model.Description)

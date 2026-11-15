@@ -55,6 +55,9 @@ namespace AlekoDispatch.Services
                     TargetCompletionDate = s.TargetCompletionDate.HasValue
                         ? s.TargetCompletionDate.Value.ToString("yyyy-MM-dd")
                         : null,
+                    CompletedDate = s.CompletedDate.HasValue
+                        ? s.CompletedDate.Value.ToString("yyyy-MM-dd")
+                        : null,
                     ActiveMachinesCount = s.AssignedMachines.Count,
                     TotalLogsCount = s.DailyWorkLogs.Count
                 })
@@ -84,6 +87,9 @@ namespace AlekoDispatch.Services
                     StartDate = ws.StartDate.ToString("dd.MM.yyyy"),
                     TargetCompletionDate = ws.TargetCompletionDate.HasValue
                         ? ws.TargetCompletionDate.Value.ToString("dd.MM.yyyy")
+                        : null,
+                    CompletedDate = ws.CompletedDate.HasValue
+                        ? ws.CompletedDate.Value.ToString("dd.MM.yyyy")
                         : null,
                     AssignedMachines = ws.AssignedMachines.Select(m => new WorkSiteAssignedMachineViewModel
                     {
@@ -123,6 +129,7 @@ namespace AlekoDispatch.Services
                 Description = entity.Description,
                 StartDate = entity.StartDate,
                 TargetCompletionDate = entity.TargetCompletionDate,
+                CompletedDate = entity.CompletedDate,
                 Status = entity.Status
             };
         }
@@ -136,6 +143,9 @@ namespace AlekoDispatch.Services
                 Description = model.Description,
                 StartDate = model.StartDate,
                 TargetCompletionDate = model.TargetCompletionDate,
+                CompletedDate = model.Status == WorkSiteStatus.Completed
+                    ? (model.CompletedDate ?? DateTime.UtcNow.Date)
+                    : null,
                 Status = model.Status
             };
 
@@ -154,6 +164,9 @@ namespace AlekoDispatch.Services
             entity.StartDate = model.StartDate;
             entity.TargetCompletionDate = model.TargetCompletionDate;
             entity.Status = model.Status;
+            entity.CompletedDate = model.Status == WorkSiteStatus.Completed
+                ? (model.CompletedDate ?? DateTime.UtcNow.Date)
+                : null;
 
             await _context.SaveChangesAsync();
             return true;

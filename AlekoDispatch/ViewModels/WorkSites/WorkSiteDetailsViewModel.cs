@@ -18,6 +18,8 @@ namespace AlekoDispatch.ViewModels.WorkSites
 
         public string? TargetCompletionDate { get; set; }
 
+        public string? CompletedDate { get; set; }
+
         public List<WorkSiteAssignedMachineViewModel> AssignedMachines { get; set; } = new();
 
         public List<WorkSiteRecentLogViewModel> RecentLogs { get; set; } = new();

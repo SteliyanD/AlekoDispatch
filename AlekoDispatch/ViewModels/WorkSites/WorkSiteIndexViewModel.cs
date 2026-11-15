@@ -16,6 +16,8 @@ namespace AlekoDispatch.ViewModels.WorkSites
 
         public string? TargetCompletionDate { get; set; }
 
+        public string? CompletedDate { get; set; }
+
         public int ActiveMachinesCount { get; set; }
 
         public int TotalLogsCount { get; set; }
