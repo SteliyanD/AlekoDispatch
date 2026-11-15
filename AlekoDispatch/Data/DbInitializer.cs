@@ -61,7 +61,7 @@ namespace AlekoDispatch.Data
                 }
             }
 
-            // WorkSites seeding with static dates
+            // WorkSites seeding with static dates respecting StartDate <= TargetCompletionDate / CompletedDate
             if (!await context.WorkSites.AnyAsync())
             {
                 var workSites = new List<WorkSite>
@@ -92,6 +92,16 @@ namespace AlekoDispatch.Data
                         StartDate = new DateTime(2026, 11, 20),
                         TargetCompletionDate = new DateTime(2026, 12, 5),
                         Status = WorkSiteStatus.Planned
+                    },
+                    new WorkSite
+                    {
+                        Name = "Old Grain Silo Foundation Clearing",
+                        Location = "Dolna Mitropoliya, Pleven District",
+                        Description = "Foundation removal, site grading, and concrete rubble transport.",
+                        StartDate = new DateTime(2026, 9, 1),
+                        TargetCompletionDate = new DateTime(2026, 10, 10),
+                        CompletedDate = new DateTime(2026, 10, 12),
+                        Status = WorkSiteStatus.Completed
                     }
                 };
 
@@ -99,12 +109,16 @@ namespace AlekoDispatch.Data
                 await context.SaveChangesAsync();
             }
 
-            // HeavyMachines seeding
+            // HeavyMachines seeding (including an out-of-service unit to demonstrate operational filtering)
             if (!await context.HeavyMachines.AnyAsync())
             {
-                var sites = await context.WorkSites.OrderBy(s => s.Id).ToListAsync();
-                var firstSite = sites.FirstOrDefault();
-                var secondSite = sites.Skip(1).FirstOrDefault();
+                var activeSites = await context.WorkSites
+                    .Where(s => s.Status == WorkSiteStatus.Active)
+                    .OrderBy(s => s.Id)
+                    .ToListAsync();
+
+                var firstActiveSite = activeSites.FirstOrDefault();
+                var secondActiveSite = activeSites.Skip(1).FirstOrDefault();
 
                 var machines = new List<HeavyMachine>
                 {
@@ -115,7 +129,7 @@ namespace AlekoDispatch.Data
                         Type = MachineType.Excavator,
                         CurrentEngineHours = 3450.5,
                         IsOperational = true,
-                        CurrentWorkSiteId = firstSite?.Id
+                        CurrentWorkSiteId = firstActiveSite?.Id
                     },
                     new HeavyMachine
                     {
@@ -124,7 +138,7 @@ namespace AlekoDispatch.Data
                         Type = MachineType.Excavator,
                         CurrentEngineHours = 5120.0,
                         IsOperational = true,
-                        CurrentWorkSiteId = firstSite?.Id
+                        CurrentWorkSiteId = firstActiveSite?.Id
                     },
                     new HeavyMachine
                     {
@@ -133,7 +147,7 @@ namespace AlekoDispatch.Data
                         Type = MachineType.WheelLoader,
                         CurrentEngineHours = 2100.8,
                         IsOperational = true,
-                        CurrentWorkSiteId = secondSite?.Id
+                        CurrentWorkSiteId = secondActiveSite?.Id
                     },
                     new HeavyMachine
                     {
@@ -142,7 +156,16 @@ namespace AlekoDispatch.Data
                         Type = MachineType.DumpTruck,
                         CurrentEngineHours = 6800.2,
                         IsOperational = true,
-                        CurrentWorkSiteId = firstSite?.Id
+                        CurrentWorkSiteId = firstActiveSite?.Id
+                    },
+                    new HeavyMachine
+                    {
+                        Model = "Volvo EC250E (Hydraulic Maintenance)",
+                        InventoryNumber = "EH-109",
+                        Type = MachineType.Excavator,
+                        CurrentEngineHours = 7410.0,
+                        IsOperational = false,
+                        CurrentWorkSiteId = null
                     }
                 };
 
@@ -150,23 +173,30 @@ namespace AlekoDispatch.Data
                 await context.SaveChangesAsync();
             }
 
-            // DailyWorkLogs seeding
+            // DailyWorkLogs seeding (strictly linked to active work sites, operational machines, and system user emails)
             if (!await context.DailyWorkLogs.AnyAsync())
             {
-                var firstSite = await context.WorkSites.OrderBy(s => s.Id).FirstOrDefaultAsync();
-                var excavator = await context.HeavyMachines.FirstOrDefaultAsync(m => m.InventoryNumber == "EH-104");
-                var dumpTruck = await context.HeavyMachines.FirstOrDefaultAsync(m => m.InventoryNumber == "EH-302");
+                var activeSite = await context.WorkSites
+                    .Where(s => s.Status == WorkSiteStatus.Active)
+                    .OrderBy(s => s.Id)
+                    .FirstOrDefaultAsync();
 
-                if (firstSite != null && excavator != null && dumpTruck != null)
+                var excavator = await context.HeavyMachines
+                    .FirstOrDefaultAsync(m => m.InventoryNumber == "EH-104" && m.IsOperational);
+
+                var dumpTruck = await context.HeavyMachines
+                    .FirstOrDefaultAsync(m => m.InventoryNumber == "EH-302" && m.IsOperational);
+
+                if (activeSite != null && excavator != null && dumpTruck != null)
                 {
                     var logs = new List<DailyWorkLog>
                     {
                         new DailyWorkLog
                         {
                             LogDate = new DateTime(2026, 11, 12),
-                            WorkSiteId = firstSite.Id,
+                            WorkSiteId = activeSite.Id,
                             HeavyMachineId = excavator.Id,
-                            OperatorName = "Ivan Petrov",
+                            OperatorName = employeeEmail,
                             HoursWorked = 8.5,
                             FuelConsumedLiters = 162.0,
                             DebrisHauledTons = 0.0,
@@ -175,9 +205,9 @@ namespace AlekoDispatch.Data
                         new DailyWorkLog
                         {
                             LogDate = new DateTime(2026, 11, 13),
-                            WorkSiteId = firstSite.Id,
+                            WorkSiteId = activeSite.Id,
                             HeavyMachineId = dumpTruck.Id,
-                            OperatorName = "Georgi Dimitrov",
+                            OperatorName = adminEmail,
                             HoursWorked = 8.0,
                             FuelConsumedLiters = 135.5,
                             DebrisHauledTons = 148.0,

@@ -29,3 +29,14 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Hide unused Identity template sections (2FA, email confirmation flows, external logins) */
+#two-factor,
+#email,
+#external-account,
+section:has(a[href*="LinkID=532715"]),
+#forgot-password,
+#resend-confirmation,
+#email-verification {
+    display: none !important;
+}

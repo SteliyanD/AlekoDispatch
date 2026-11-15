@@ -44,12 +44,16 @@
 
                         <div class="col-md-6">
                             <label asp-for="OperatorName" class="form-label">
-                                Operator (Email / Name)
+                                Operator
                             </label>
 
                             <input asp-for="OperatorName"
-                                   class="form-control"
-                                   placeholder="Enter operator email or name" />
+                                   class="form-control bg-light"
+                                   readonly />
+
+                            <div class="form-text">
+                                Automatically recorded from your logged-in account.
+                            </div>
 
                             <span asp-validation-for="OperatorName"
                                   class="text-danger">

@@ -41,6 +41,10 @@ namespace AlekoDispatch.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DailyWorkLogFormModel model)
         {
+            model.OperatorName = User.Identity?.Name ?? string.Empty;
+            ModelState.Remove(nameof(model.OperatorName));
+            TryValidateModel(model);
+
             if (!ModelState.IsValid)
             {
                 model.AvailableWorkSites = await _logService.GetActiveWorkSitesSelectListAsync();
