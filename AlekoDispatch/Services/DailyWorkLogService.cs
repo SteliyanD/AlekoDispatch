@@ -1,4 +1,5 @@
 ﻿using AlekoDispatch.Data;
+using AlekoDispatch.Data.Enums;
 using AlekoDispatch.Data.Models;
 using AlekoDispatch.ViewModels.DailyWorkLogs;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -99,13 +100,25 @@ namespace AlekoDispatch.Services
             {
                 LogDate = DateTime.Today,
                 OperatorName = defaultOperatorName ?? string.Empty,
-                AvailableWorkSites = await GetWorkSitesSelectListAsync(),
+                AvailableWorkSites = await GetActiveWorkSitesSelectListAsync(),
                 AvailableMachines = await GetOperationalMachinesSelectListAsync()
             };
         }
 
         public async Task CreateAsync(DailyWorkLogFormModel model)
         {
+            var machine = await _context.HeavyMachines.FindAsync(model.HeavyMachineId);
+            if (machine == null || !machine.IsOperational)
+            {
+                throw new InvalidOperationException("Selected machine does not exist or is not operational.");
+            }
+
+            var workSite = await _context.WorkSites.FindAsync(model.WorkSiteId);
+            if (workSite == null || workSite.Status != WorkSiteStatus.Active)
+            {
+                throw new InvalidOperationException("Work logs can only be recorded for active work sites.");
+            }
+
             var log = new DailyWorkLog
             {
                 LogDate = model.LogDate,
@@ -120,12 +133,8 @@ namespace AlekoDispatch.Services
 
             await _context.DailyWorkLogs.AddAsync(log);
 
-            var machine = await _context.HeavyMachines.FindAsync(model.HeavyMachineId);
-            if (machine != null)
-            {
-                machine.CurrentEngineHours += model.HoursWorked;
-                machine.CurrentWorkSiteId = model.WorkSiteId;
-            }
+            machine.CurrentEngineHours += model.HoursWorked;
+            machine.CurrentWorkSiteId = model.WorkSiteId;
 
             await _context.SaveChangesAsync();
         }
@@ -153,6 +162,20 @@ namespace AlekoDispatch.Services
         {
             return await _context.WorkSites
                 .AsNoTracking()
+                .OrderBy(s => s.Name)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = $"{s.Name} ({s.Location})"
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SelectListItem>> GetActiveWorkSitesSelectListAsync()
+        {
+            return await _context.WorkSites
+                .AsNoTracking()
+                .Where(s => s.Status == WorkSiteStatus.Active)
                 .OrderBy(s => s.Name)
                 .Select(s => new SelectListItem
                 {

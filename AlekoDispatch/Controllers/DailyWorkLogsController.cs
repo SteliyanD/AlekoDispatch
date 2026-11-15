@@ -43,13 +43,23 @@ namespace AlekoDispatch.Controllers
         {
             if (!ModelState.IsValid)
             {
-                model.AvailableWorkSites = await _logService.GetWorkSitesSelectListAsync();
+                model.AvailableWorkSites = await _logService.GetActiveWorkSitesSelectListAsync();
                 model.AvailableMachines = await _logService.GetOperationalMachinesSelectListAsync();
                 return View(model);
             }
 
-            await _logService.CreateAsync(model);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _logService.CreateAsync(model);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                model.AvailableWorkSites = await _logService.GetActiveWorkSitesSelectListAsync();
+                model.AvailableMachines = await _logService.GetOperationalMachinesSelectListAsync();
+                return View(model);
+            }
         }
 
         // POST: /DailyWorkLogs/Delete/{id}

@@ -1,5 +1,4 @@
-﻿
-@using AlekoDispatch.ViewModels.DailyWorkLogs
+﻿@using AlekoDispatch.ViewModels.DailyWorkLogs
 
 @model DailyWorkLogFormModel
 
@@ -45,12 +44,12 @@
 
                         <div class="col-md-6">
                             <label asp-for="OperatorName" class="form-label">
-                                Operator Name
+                                Operator (Email / Name)
                             </label>
 
                             <input asp-for="OperatorName"
                                    class="form-control"
-                                   placeholder="Enter operator name" />
+                                   placeholder="Enter operator email or name" />
 
                             <span asp-validation-for="OperatorName"
                                   class="text-danger">
@@ -70,6 +69,10 @@
                                 <option value="">Select Work Site</option>
                             </select>
 
+                            <div class="form-text">
+                                Only active work sites are listed.
+                            </div>
+
                             <span asp-validation-for="WorkSiteId"
                                   class="text-danger">
                             </span>
@@ -85,6 +88,10 @@
                                     class="form-select">
                                 <option value="">Select Machine</option>
                             </select>
+
+                            <div class="form-text">
+                                Only operational machines are shown. Logging a shift automatically updates the machine's current work site.
+                            </div>
 
                             <span asp-validation-for="HeavyMachineId"
                                   class="text-danger">

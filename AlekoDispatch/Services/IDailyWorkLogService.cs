@@ -20,6 +20,8 @@ namespace AlekoDispatch.Services
 
         Task<IEnumerable<SelectListItem>> GetWorkSitesSelectListAsync();
 
+        Task<IEnumerable<SelectListItem>> GetActiveWorkSitesSelectListAsync();
+
         Task<IEnumerable<SelectListItem>> GetOperationalMachinesSelectListAsync();
     }
 }
