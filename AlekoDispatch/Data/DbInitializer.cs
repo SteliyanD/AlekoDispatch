@@ -216,6 +216,16 @@ namespace AlekoDispatch.Data
                     };
 
                     await context.DailyWorkLogs.AddRangeAsync(logs);
+
+                    // Add the newly recorded working hours to the machines' existing totals.
+                    excavator.CurrentEngineHours += logs
+                        .Where(l => l.HeavyMachineId == excavator.Id)
+                        .Sum(l => l.HoursWorked);
+
+                    dumpTruck.CurrentEngineHours += logs
+                        .Where(l => l.HeavyMachineId == dumpTruck.Id)
+                        .Sum(l => l.HoursWorked);
+
                     await context.SaveChangesAsync();
                 }
             }

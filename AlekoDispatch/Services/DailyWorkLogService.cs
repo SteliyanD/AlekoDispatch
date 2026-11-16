@@ -150,7 +150,13 @@ namespace AlekoDispatch.Services
             var machine = await _context.HeavyMachines.FindAsync(log.HeavyMachineId);
             if (machine != null)
             {
-                machine.CurrentEngineHours = Math.Max(0, machine.CurrentEngineHours - log.HoursWorked);
+                if (machine.CurrentEngineHours < log.HoursWorked)
+                {
+                    throw new InvalidOperationException(
+                        "The machine's current engine hours are lower than the hours recorded in this work log. The work log cannot be deleted safely.");
+                }
+
+                machine.CurrentEngineHours -= log.HoursWorked;
             }
 
             _context.DailyWorkLogs.Remove(log);
