@@ -16,6 +16,8 @@
 
   * *Automated Synchronization:* Creating a shift log adds worked hours to the machine's `CurrentEngineHours` and updates its `CurrentWorkSiteId` to match the log; deleting a log deducts those hours safely (clamped at zero).
 
+  * *Explicit Assignment Management:* Deleting a historical work log subtracts the logged hours from the machine's total engine hours, but does not automatically revert `CurrentWorkSiteId` to a previous site. This prevents accidental fleet-location changes when removing an incorrectly entered entry; current machine assignments are updated only through new shift logs or explicit edits.
+
 * **Role-Based Authorization:**
 
   * **`Administrator`:** Full CRUD on work sites and machinery, plus creating and deleting daily work logs.

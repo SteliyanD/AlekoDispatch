@@ -28,6 +28,11 @@ namespace AlekoDispatch.Services
                 currentPage = 1;
             }
 
+            if (pageSize < 1)
+            {
+                pageSize = 10;
+            }
+
             var query = _context.DailyWorkLogs
                 .AsNoTracking()
                 .AsQueryable();

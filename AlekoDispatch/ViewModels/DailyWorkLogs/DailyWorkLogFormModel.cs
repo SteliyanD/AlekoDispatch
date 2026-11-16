@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AlekoDispatch.ViewModels.DailyWorkLogs
 {
-    public class DailyWorkLogFormModel
+    public class DailyWorkLogFormModel : IValidatableObject
     {
         [Required]
         [DataType(DataType.Date)]
@@ -20,22 +20,30 @@ namespace AlekoDispatch.ViewModels.DailyWorkLogs
         public int HeavyMachineId { get; set; }
 
         [Required]
-        [Range(ValidationConstants.LogHoursWorkedMinValue, ValidationConstants.LogHoursWorkedMaxValue)]
+        [Range(
+            ValidationConstants.LogHoursWorkedMinValue,
+            ValidationConstants.LogHoursWorkedMaxValue)]
         [Display(Name = "Hours Worked")]
         public double HoursWorked { get; set; }
 
         [Required]
-        [Range(ValidationConstants.LogFuelConsumedMinValue, ValidationConstants.LogFuelConsumedMaxValue)]
+        [Range(
+            ValidationConstants.LogFuelConsumedMinValue,
+            ValidationConstants.LogFuelConsumedMaxValue)]
         [Display(Name = "Fuel Consumed (Liters)")]
         public double FuelConsumedLiters { get; set; }
 
         [Required]
-        [Range(ValidationConstants.LogDebrisHauledMinValue, ValidationConstants.LogDebrisHauledMaxValue)]
+        [Range(
+            ValidationConstants.LogDebrisHauledMinValue,
+            ValidationConstants.LogDebrisHauledMaxValue)]
         [Display(Name = "Debris Hauled (Tons)")]
         public double DebrisHauledTons { get; set; }
 
         [Required]
-        [MaxLength(ValidationConstants.LogOperatorNameMaxLength)]
+        [StringLength(
+            ValidationConstants.LogOperatorNameMaxLength,
+            MinimumLength = ValidationConstants.LogOperatorNameMinLength)]
         [Display(Name = "Operator Name")]
         public string OperatorName { get; set; } = null!;
 
@@ -43,8 +51,21 @@ namespace AlekoDispatch.ViewModels.DailyWorkLogs
         [Display(Name = "Shift Notes / Observations")]
         public string? Notes { get; set; }
 
-        public IEnumerable<SelectListItem> AvailableWorkSites { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> AvailableWorkSites { get; set; }
+            = new List<SelectListItem>();
 
-        public IEnumerable<SelectListItem> AvailableMachines { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> AvailableMachines { get; set; }
+            = new List<SelectListItem>();
+
+        public IEnumerable<ValidationResult> Validate(
+            ValidationContext validationContext)
+        {
+            if (LogDate.Date > DateTime.Today)
+            {
+                yield return new ValidationResult(
+                    "The log date cannot be in the future.",
+                    new[] { nameof(LogDate) });
+            }
+        }
     }
 }
