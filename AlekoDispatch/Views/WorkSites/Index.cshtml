@@ -130,16 +130,12 @@ else
             <tbody>
                 @foreach (var site in Model.WorkSites)
                 {
-                    var statusClass = "bg-warning text-dark";
-
-                    if (site.Status.ToString() == "Active")
+                    var statusClass = site.Status switch
                     {
-                        statusClass = "bg-success";
-                    }
-                    else if (site.Status.ToString() == "Completed")
-                    {
-                        statusClass = "bg-secondary";
-                    }
+                        WorkSiteStatus.Active => "bg-success",
+                        WorkSiteStatus.Completed => "bg-secondary",
+                        _ => "bg-warning text-dark"
+                    };
 
                     <tr>
                         <td>

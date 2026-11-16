@@ -1,4 +1,5 @@
 ﻿using AlekoDispatch.Data;
+using AlekoDispatch.Data.Enums;
 using AlekoDispatch.ViewModels.DailyWorkLogs;
 using AlekoDispatch.ViewModels.Home;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,7 @@ namespace AlekoDispatch.Services
 
             var totalWorkSites = await _context.WorkSites.CountAsync();
             var activeWorkSites = await _context.WorkSites
-                .CountAsync(s => s.Status.ToString() == "Active");
+                .CountAsync(s => s.Status == WorkSiteStatus.Active);
 
             var totalMachines = await _context.HeavyMachines.CountAsync();
             var operationalMachines = await _context.HeavyMachines
