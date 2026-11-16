@@ -166,10 +166,19 @@ namespace AlekoDispatch.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var machine = await _context.HeavyMachines.FindAsync(id);
+            var machine = await _context.HeavyMachines
+                .Include(m => m.DailyWorkLogs)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (machine == null)
             {
                 return false;
+            }
+
+            if (machine.DailyWorkLogs.Any())
+            {
+                throw new InvalidOperationException(
+                    $"Cannot delete machine \"{machine.Model} [{machine.InventoryNumber}]\" because it has {machine.DailyWorkLogs.Count} recorded daily work log(s). Delete the associated logs first.");
             }
 
             _context.HeavyMachines.Remove(machine);

@@ -104,10 +104,17 @@ namespace AlekoDispatch.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _workSiteService.DeleteAsync(id);
-            if (!success)
+            try
             {
-                return NotFound();
+                var success = await _workSiteService.DeleteAsync(id);
+                if (!success)
+                {
+                    return NotFound();
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             return RedirectToAction(nameof(Index));

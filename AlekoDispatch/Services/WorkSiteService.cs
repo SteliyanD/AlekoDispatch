@@ -174,8 +174,20 @@ namespace AlekoDispatch.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _context.WorkSites.FindAsync(id);
-            if (entity == null) return false;
+            var entity = await _context.WorkSites
+                .Include(ws => ws.DailyWorkLogs)
+                .FirstOrDefaultAsync(ws => ws.Id == id);
+
+            if (entity == null)
+            {
+                return false;
+            }
+
+            if (entity.DailyWorkLogs.Any())
+            {
+                throw new InvalidOperationException(
+                    $"Cannot delete work site \"{entity.Name}\" because it has {entity.DailyWorkLogs.Count} recorded daily work log(s). Delete the associated logs first.");
+            }
 
             _context.WorkSites.Remove(entity);
             await _context.SaveChangesAsync();

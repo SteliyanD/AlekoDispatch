@@ -106,10 +106,17 @@ namespace AlekoDispatch.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _machineService.DeleteAsync(id);
-            if (!success)
+            try
             {
-                return NotFound();
+                var success = await _machineService.DeleteAsync(id);
+                if (!success)
+                {
+                    return NotFound();
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
