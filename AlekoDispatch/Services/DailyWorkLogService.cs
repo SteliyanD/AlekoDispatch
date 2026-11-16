@@ -66,7 +66,7 @@ namespace AlekoDispatch.Services
                 .Select(l => new DailyWorkLogIndexViewModel
                 {
                     Id = l.Id,
-                    LogDate = l.LogDate.ToString("yyyy-MM-dd"),
+                    LogDate = l.LogDate.ToString("dd.MM.yyyy"),
                     WorkSiteId = l.WorkSiteId,
                     WorkSiteName = l.WorkSite.Name,
                     HeavyMachineId = l.HeavyMachineId,

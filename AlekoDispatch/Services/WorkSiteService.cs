@@ -51,12 +51,12 @@ namespace AlekoDispatch.Services
                     Name = s.Name,
                     Location = s.Location,
                     Status = s.Status,
-                    StartDate = s.StartDate.ToString("yyyy-MM-dd"),
+                    StartDate = s.StartDate.ToString("dd.MM.yyyy"),
                     TargetCompletionDate = s.TargetCompletionDate.HasValue
-                        ? s.TargetCompletionDate.Value.ToString("yyyy-MM-dd")
+                        ? s.TargetCompletionDate.Value.ToString("dd.MM.yyyy")
                         : null,
                     CompletedDate = s.CompletedDate.HasValue
-                        ? s.CompletedDate.Value.ToString("yyyy-MM-dd")
+                        ? s.CompletedDate.Value.ToString("dd.MM.yyyy")
                         : null,
                     ActiveMachinesCount = s.AssignedMachines.Count,
                     TotalLogsCount = s.DailyWorkLogs.Count

@@ -90,7 +90,7 @@ namespace AlekoDispatch.Services
                         .Take(5)
                         .Select(l => new HeavyMachineLogSummaryViewModel
                         {
-                            Date = l.LogDate.ToString("yyyy-MM-dd"),
+                            Date = l.LogDate.ToString("dd.MM.yyyy"),
                             OperatorName = l.OperatorName ?? "Unknown",
                             HoursWorked = l.HoursWorked,
                             FuelConsumedLiters = l.FuelConsumedLiters,
