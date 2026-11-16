@@ -46,14 +46,19 @@ namespace AlekoDispatch
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
+                var logger = services.GetRequiredService<ILogger<Program>>();
+
                 try
                 {
                     await DbInitializer.SeedDataAsync(services);
                 }
                 catch (Exception ex)
                 {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred while seeding initial database records.");
+                    logger.LogCritical(
+                        ex,
+                        "An error occurred while initializing the database.");
+
+                    throw;
                 }
             }
 

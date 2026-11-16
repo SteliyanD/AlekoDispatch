@@ -1,4 +1,5 @@
-﻿using AlekoDispatch.Data.Enums;
+﻿
+using AlekoDispatch.Data.Enums;
 using AlekoDispatch.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,12 @@ namespace AlekoDispatch.Data
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                    var result = await roleManager.CreateAsync(
+                        new IdentityRole(roleName));
+
+                    EnsureIdentitySuccess(
+                        result,
+                        $"Creating role '{roleName}'");
                 }
             }
 
@@ -36,11 +42,21 @@ namespace AlekoDispatch.Data
                     EmailConfirmed = true
                 };
 
-                var createAdminResult = await userManager.CreateAsync(adminUser, "Admin123!");
-                if (createAdminResult.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Administrator");
-                }
+                var createAdminResult = await userManager.CreateAsync(
+                    adminUser,
+                    "Admin123!");
+
+                EnsureIdentitySuccess(
+                    createAdminResult,
+                    $"Creating default administrator '{adminEmail}'");
+
+                var adminRoleResult = await userManager.AddToRoleAsync(
+                    adminUser,
+                    "Administrator");
+
+                EnsureIdentitySuccess(
+                    adminRoleResult,
+                    $"Assigning Administrator role to '{adminEmail}'");
             }
 
             // Default employee account for testing non-admin role access
@@ -54,11 +70,21 @@ namespace AlekoDispatch.Data
                     EmailConfirmed = true
                 };
 
-                var createEmployeeResult = await userManager.CreateAsync(employeeUser, "Employee123!");
-                if (createEmployeeResult.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(employeeUser, "Employee");
-                }
+                var createEmployeeResult = await userManager.CreateAsync(
+                    employeeUser,
+                    "Employee123!");
+
+                EnsureIdentitySuccess(
+                    createEmployeeResult,
+                    $"Creating default employee '{employeeEmail}'");
+
+                var employeeRoleResult = await userManager.AddToRoleAsync(
+                    employeeUser,
+                    "Employee");
+
+                EnsureIdentitySuccess(
+                    employeeRoleResult,
+                    $"Assigning Employee role to '{employeeEmail}'");
             }
 
             // WorkSites seeding with static dates respecting StartDate <= TargetCompletionDate / CompletedDate
@@ -228,6 +254,22 @@ namespace AlekoDispatch.Data
 
                     await context.SaveChangesAsync();
                 }
+            }
+        }
+
+        private static void EnsureIdentitySuccess(
+            IdentityResult result,
+            string operation)
+        {
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(
+                    "; ",
+                    result.Errors.Select(error =>
+                        $"{error.Code}: {error.Description}"));
+
+                throw new InvalidOperationException(
+                    $"{operation} failed: {errors}");
             }
         }
     }
